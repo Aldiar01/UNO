@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Игра UNO</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 20px;
+    }
+    .card {
+      display: inline-block;
+      padding: 10px;
+      margin: 5px;
+      border: 1px solid #333;
+      border-radius: 5px;
+      font-size: 18px;
+      font-weight: bold;
+      color: white;
+    }
+    .red { background-color: red; }
+    .blue { background-color: blue; }
+    .green { background-color: green; }
+    .yellow { background-color: yellow; }
+    .game-area {
+      margin: 20px auto;
+      text-align: center;
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 18px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Классическое UNO</h1>
+  <div id="gameArea" class="game-area"></div>
+  <button id="playButton" onclick="playTurn()">Играть ход</button>
+  <div class="result" id="result"></div>
+
+  <script>
+    const colors = ["red", "blue", "green", "yellow"];
+    const values = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "Skip", "Reverse", "Draw2"];
+
+    // Функция для создания случайной карты
+    function createRandomCard() {
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const value = values[Math.floor(Math.random() * values.length)];
+      return { color, value };
+    }
+
+    // Функция для отображения карты
+    function renderCard(card) {
+      return `<span class="card ${card.color}">${card.color.toUpperCase()} ${card.value}</span>`;
+    }
+
+    // Генерация стартовых карт для игрока и бота
+    let playerHand = Array.from({ length: 6 }, createRandomCard);
+    let botHand = Array.from({ length: 6 }, createRandomCard);
+    let discardPile = [createRandomCard()];
+    let currentColor = discardPile[0].color;
+    let currentValue = discardPile[0].value;
+    let isPlayerTurn = true;
+
+    function updateGameArea() {
+      const gameArea = document.getElementById("gameArea");
+      gameArea.innerHTML = `
+        <div><strong>Сброс:</strong> ${renderCard(discardPile[discardPile.length - 1])}</div>
+        <div><strong>Ваши карты:</strong> ${playerHand.map(renderCard).join("")}</div>
+        <div><strong>Карт у бота:</strong> ${botHand.length}</div>
+      `;
+    }
+
+    function playTurn() {
+      let hand = isPlayerTurn ? playerHand : botHand;
+      let player = isPlayerTurn ? "Ты" : "Бот";
+      let playedCard = hand.find(card => card.color === currentColor || card.value === currentValue);
+
+      if (playedCard) {
+        // Если есть подходящая карта
+        hand.splice(hand.indexOf(playedCard), 1);
+        discardPile.push(playedCard);
+        currentColor = playedCard.color;
+        currentValue = playedCard.value;
+        document.getElementById("result").textContent = `${player} сыграл ${playedCard.color.toUpperCase()} ${playedCard.value}`;
+      } else {
+        // Если подходящей карты нет
+        const newCard = createRandomCard();
+        hand.push(newCard);
+        document.getElementById("result").textContent = `${player} берет карту!`;
+      }
+
+      // Проверяем победу
+      if (hand.length === 0) {
+        document.getElementById("result").textContent = isPlayerTurn ? "Ты выиграл!" : "Алдияр лучше тебя!";
+        document.getElementById("playButton").disabled = true;
+        return;
+      }
+
+      // Меняем ход
+      isPlayerTurn = !isPlayerTurn;
+      updateGameArea();
+    }
+
+    // Начало игры
+    updateGameArea();
+  </script>
+</body>
+</html>
